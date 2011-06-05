@@ -1,0 +1,55 @@
+#!/bin/bash
+shopt -s extglob  #Enables extglob
+
+# Just setting some arbitrary path to show how it works
+INSTALL_PATH=$HOME/.ironruby
+
+mkdir -p $INSTALL_PATH
+cd $INSTALL_PATH
+
+# Build binaries
+git clone git://github.com/IronLanguages/main.git src
+cd src
+git checkout v1.1.3
+xbuild /p:Configuration=Release Solutions/Ruby.sln
+
+# Copy binaries to output folder
+mkdir -p $INSTALL_PATH/bin
+cp bin/Release/* $INSTALL_PATH/bin
+
+# Copy standard libraries
+mkdir -p $INSTALL_PATH/lib
+cp -R Languages/Ruby/StdLib/* $INSTALL_PATH/lib
+
+# Copy binaries, it's these binaries we will be generating scripts for later
+cd Languages/Ruby/Scripts/bin/
+cp !(*.bat) $INSTALL_PATH/bin
+
+# Change configuration
+cd $INSTALL_PATH/bin
+sed -i '' -e 's#\(<set language="Ruby" option="StandardLibrary" value="\).*\("/>\)#\1'..\\\\lib'\2#g' ir.exe.config
+
+# Create scripts
+
+# This should be 'ruby' in rvm case I think
+echo "#!/bin/sh
+exec `which mono` $INSTALL_PATH/bin/ir.exe \$@" > "$INSTALL_PATH/bin/ir"
+
+# This should be 'irb' in rvm case I think
+echo "#!/bin/sh
+exec $INSTALL_PATH/bin/ir $INSTALL_PATH/bin/irb \$@" > "$INSTALL_PATH/bin/iirb"
+
+# This should be 'gem' in rvm case I think
+echo "#!/bin/sh
+exec $INSTALL_PATH/bin/ir $INSTALL_PATH/bin/gem \$@" > "$INSTALL_PATH/bin/igem"
+
+# This should be 'ri' in rvm case I think
+echo "#!/bin/sh
+exec $INSTALL_PATH/bin/ir $INSTALL_PATH/bin/ri \$@" > "$INSTALL_PATH/bin/iri"
+
+# This should be 'rdoc' in rvm case I think
+echo "#!/bin/sh
+exec $INSTALL_PATH/bin/ir $INSTALL_PATH/bin/rdoc \$@" > "$INSTALL_PATH/bin/irdoc"
+
+# Make scripts executable
+chmod ug+x "$INSTALL_PATH/bin/ir" "$INSTALL_PATH/bin/iirb" "$INSTALL_PATH/bin/igem" "$INSTALL_PATH/bin/iri" "$INSTALL_PATH/bin/irdoc"
