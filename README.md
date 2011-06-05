@@ -11,10 +11,12 @@ Prerequisites
 =============
 * Mono 2.10 (or older compiled with C#4.0 support)
 * Mono developer tools (dmcs & xbuild)
+* GIT
 
 What does it do so far?
 =======================
-So far the script will: 
+So far the script will:
+
 * Clone IronRuby from github.
 * Build IronRuby
 * Copy necessary files into the correct release structure
